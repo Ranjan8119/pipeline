@@ -21,9 +21,9 @@ phases:
       - echo Build completed on `date`
       - echo Pushing the Docker images...
       - docker push 334240579318.dkr.ecr.ap-southeast-1.amazonaws.com/hello-repository:latest
-      - docker push 334240579318.dkr.ecr.ap-southeast-1.amazonaws.com/hello-repository:$IMAGE_TAG
+      - docker push 334240579318.dkr.ecr.ap-southeast-1.amazonaws.com/hello-repository:latest
       - echo Writing image definitions file...
-      - printf '[{"name":"myapp","imageUri":"%s"}]' 334240579318.dkr.ecr.ap-southeast-1.amazonaws.com/hello-repository:$IMAGE_TAG > imagedefinitions.json
+      - printf '[{"name":"myapp","imageUri":"%s"}]' 334240579318.dkr.ecr.ap-southeast-1.amazonaws.com/hello-repository:latest > imagedefinitions.json
       - cat imagedefinitions.json 
 artifacts:
     files: imagedefinitions.json
