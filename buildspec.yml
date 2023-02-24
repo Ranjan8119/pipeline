@@ -1,26 +1,27 @@
 version: 0.2
+
 phases:
+  install:
+    runtime-versions:
+      docker: 18
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
-      - aws --version
-      - $(aws ecr get-login --region -us-east-1 --no-include-email)
-      - REPOSITORY_URI=334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx
-      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION)
-      - IMAGE_TAG=${COMMIT_HASH:=latest}
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - CODEBUILD_RESOLVED_SOURCE_VERSION="${CODEBUILD_RESOLVED_SOURCE_VERSION:-$IMAGE_TAG}"
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_URI="334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:$IMAGE_TAG"
   build:
     commands:
       - echo Build started on `date`
-      - echo Building the Docker image...          
-      - docker build -t 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:latest .
-      - docker tag 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:latest 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:$IMAGE_TAG
+      - echo Building the Docker image...
+      - docker build -t334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx .
   post_build:
     commands:
-      - echo Build completed
-      - echo Pushing the Docker images...
-      - docker push 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:latest
-      - docker push 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:$IMAGE_TAG
-      - echo Writing definitions file...
-      - printf '[{"name":"project-container","imageUri":"%s"}]' 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:$IMAGE_TAG > taskdefinition.json
+      - bash -c "if [ /"$CODEBUILD_BUILD_SUCCEEDING/" == /"0/" ]; then exit 1; fi"
+      - echo Build stage successfully completed on `date`
+      - echo Pushing the Docker image...
+      - docker push 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx
+      - printf '[{"name":"nginx","imageUri":"%s"}]' "334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx" > images.json
 artifacts:
-    files: taskdefinition.json
+  files: images.json
