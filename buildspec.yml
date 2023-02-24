@@ -6,24 +6,24 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - aws --version
-      - $(aws ecr get-login --region ap-southeast-1 --no-include-email)
-      - REPOSITORY_URI=334240579318.dkr.ecr.ap-southeast-1.amazonaws.com/hello-repository
+      - $(aws ecr get-login --region us-east-1 --no-include-email)
+      - REPOSITORY_URI=334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
   build:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - docker build -t 334240579318.dkr.ecr.ap-southeast-1.amazonaws.com/hello-repository:latest .
-      - docker tag 334240579318.dkr.ecr.ap-southeast-1.amazonaws.com/hello-repository:latest 334240579318.dkr.ecr.ap-southeast-1.amazonaws.com/hello-repository:$IMAGE_TAG
+      - docker build -t 3334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:latest .
+      - docker tag 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:latest 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:$IMAGE_TAG
   post_build:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker images...
-      - docker push 334240579318.dkr.ecr.ap-southeast-1.amazonaws.com/hello-repository:latest
-      - docker push 334240579318.dkr.ecr.ap-southeast-1.amazonaws.com/hello-repository:latest
+      - docker push 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:latest
+      - docker push 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:latest
       - echo Writing image definitions file...
-      - printf '[{"name":"myapp","334240579318.dkr.ecr.ap-southeast-1.amazonaws.com/hello-repository:latest":"%s"}]' 334240579318.dkr.ecr.ap-southeast-1.amazonaws.com/hello-repository:latest > imagedefinitions.json
+      - printf '[{"name":"myapp","334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:latest":"%s"}]' 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:latest > imagedefinitions.json
       - cat imagedefinitions.json 
 artifacts:
     files: imagedefinitions.json
