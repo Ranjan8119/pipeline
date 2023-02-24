@@ -21,6 +21,6 @@ phases:
       - docker push 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:latest
       - docker push 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:$IMAGE_TAG
       - echo Writing definitions file...
-      - printf '[{"name":"project-container","334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx":"%s"}]' 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:$IMAGE_TAG > taskdefinition.json
+      - printf '[{"name":"project-container","imageUri":"%s"}]' 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:$IMAGE_TAG > taskdefinition.json
 artifacts:
     files: taskdefinition.json
