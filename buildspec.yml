@@ -1,29 +1,26 @@
 version: 0.2
-
-
 phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
       - aws --version
-      - $(aws ecr get-login --region us-east-1 --no-include-email)
+      - $(aws ecr get-login --region ***-east-*)
       - REPOSITORY_URI=334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx
-      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
   build:
     commands:
       - echo Build started on `date`
-      - echo Building the Docker image...
-      - docker build -t 3334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:latest .
+      - echo Building the Docker image...          
+      - docker build -t 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:latest .
       - docker tag 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:latest 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:$IMAGE_TAG
   post_build:
     commands:
-      - echo Build completed on `date`
+      - echo Build completed
       - echo Pushing the Docker images...
       - docker push 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:latest
-      - docker push 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:latest
-      - echo Writing image definitions file...
-      - printf '[{"name":"myapp","334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:latest":"%s"}]' 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:latest > imagedefinitions.json
-      - cat imagedefinitions.json 
+      - docker push 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:$IMAGE_TAG
+      - echo Writing definitions file...
+      - printf '[{"name":"project-container","imageUri":"%s"}]' 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:$IMAGE_TAG > taskdefinition.json
 artifacts:
-    files: imagedefinitions.json
+    files: taskdefinition.json
