@@ -1,27 +1,27 @@
 version: 0.2
-
 phases:
-  install:
-    runtime-versions:
-      docker: 18
   pre_build:
     commands:
-      - echo Logging in to Amazon ECR
-      - $(aws ecr get-login --region us-east-1 --no-include-email)
-      - CODEBUILD_RESOLVED_SOURCE_VERSION="${CODEBUILD_RESOLVED_SOURCE_VERSION:-$IMAGE_TAG}"
-      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - IMAGE_URI="334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx:$IMAGE_TAG"
+      - echo Logging in to Amazon ECR...
+      - aws --version
+      - $(aws ecr get-login --region eu-central-1 --no-include-email)
+      - REPOSITORY_URI=334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
   build:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - docker build -t334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx .
+      - docker build -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
-      - bash -c "if [ /"$CODEBUILD_BUILD_SUCCEEDING/" == /"0/" ]; then exit 1; fi"
-      - echo Build stage successfully completed on `date`
-      - echo Pushing the Docker image...
-      - docker push 334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx
-      - printf '[{"name":"nginx","imageUri":"%s"}]' "334240579318.dkr.ecr.us-east-1.amazonaws.com/ecs-cicd-nginx" > images.json
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo Writing image definitions file...
+      - printf '[{"name":"ecs-cicd-nginx","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - cat imagedefinitions.json 
 artifacts:
-  files: images.json
+    files: imagedefinitions.json
